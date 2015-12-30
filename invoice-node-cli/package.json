@@ -1,0 +1,20 @@
+{
+  "name": "invoice-node-cli",
+  "version": "0.1.0",
+  "description": "Create invoices from SQLite db to html to pdf",
+  "main": "invc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Maro Zarokka",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "dateformat": "^1.0.12",
+    "html-pdf": "^1.4.0",
+    "inquirer": "^0.11.0",
+    "mustache": "^2.2.1",
+    "open": "0.0.5",
+    "sqlite3": "^3.1.1"
+  }
+}

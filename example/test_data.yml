@@ -1,0 +1,38 @@
+---
+    biller:
+        name: Seppl
+        street: Hinterholz 8
+        postal: "1234"
+        city: Pamapa
+        taxId: ATU12345678
+        banking:
+            institute: Abzocker Bank
+            swift: ABZ31337
+            iban: AT1234567891111111
+    customer:
+        name: Ishowyouthemoney
+        street: Cashway 111
+        postal: "4321"
+        city: Metropolis
+        taxId: ATU12345678
+    id: 2016-0001
+    date: 02.01.2016
+    periodeFrom: 01.12.2015
+    periodeTo: 31.12.2015
+    items:
+        - discription: "Software Development:<br> Project AWSOME"
+          quantity: "100.00"
+          unit: "h"
+          unitPrice: "100.00"
+          priceNet: "10,000,00"
+        - discription: Other stuff
+          quantity: "12.50"
+          unit: "h"
+          unitPrice: "100.00"
+          priceNet: "1,250.00"
+    totalNet: "11,250.00"
+    taxPercentage: "20"
+    totalTax: "2,500.00"
+    totalGross: "13,750.00"
+    termsAmount: 14
+---
