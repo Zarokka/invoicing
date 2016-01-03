@@ -60,10 +60,11 @@ CREATE TABLE "invoice" (
 	`total_tax`	REAL,
 	`total_gross`	REAL,
 	`export_date`	TEXT,
+	`due_date`	TEXT,
 	`payment_date`	TEXT,
 	PRIMARY KEY(id),
 	FOREIGN KEY(`biller_id`) REFERENCES biller ( id ),
-	FOREIGN KEY(`customer_id`) REFERENCES customer(id)
+	FOREIGN KEY(`customer_id`) REFERENCES customer ( id )
 );
 
 CREATE TABLE "invoice_item" (

@@ -58,7 +58,6 @@ function exportInvoiceHtmlPdf(invoice, callback) {
             return callback(err);
         }
         console.log("Template read.");
-
         var html = mustache.to_html(data, invoice);
         console.log("Html generated.");
         var outfile = outpath + "/invoice_" + invoice.id + ".html";
@@ -129,6 +128,7 @@ function addCustomer(invoice, customerId, callback) {
         customer.postal = row.postal;
         customer.city = row.city;
         customer.taxId = row.tax_id;
+        customer.termsAmount = row.terms_amount;
 
         invoice.customer = customer;
 
@@ -138,10 +138,26 @@ function addCustomer(invoice, customerId, callback) {
 
 function numToLocale(num) {
     if (locale != null) {
-        return num.toLocaleString(locale, {maximumFractionDigits: 2, minimumFractionDigits: 2});
+        return num.toLocaleString(locale, {
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 2
+        });
     }
 
-    return num.toLocaleString({maximumFractionDigits: 2, minimumFractionDigits: 2});
+    return num.toLocaleString({
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2
+    });
+}
+
+function updateExportDateIfNotSet(invoiceId, callback) {
+    db.run('update invoice SET export_date = ? WHERE id = ? and export_date is null',
+        dateFormat(new Date(), "yyyy-mm-dd"), invoiceId,
+        function(err) {
+            if (err) return callback(err);
+
+            callback();
+        });
 }
 
 function exportInvoice(invoiceId, callback) {
@@ -176,7 +192,7 @@ function exportInvoice(invoiceId, callback) {
 
                 row = rows[i];
                 var item = {};
-                item.description = rows.description;
+                item.description = row.description;
                 item.unit = row.unit;
                 item.unitPrice = numToLocale(row.unit_price);
                 item.quantity = numToLocale(row.quantity);
@@ -192,12 +208,17 @@ function exportInvoice(invoiceId, callback) {
                 addCustomer(invoice, row.customer_id, function(err) {
                     if (err) return callback(err);
 
-                    exportInvoiceHtmlPdf(invoice, function(err) {
+                    invoice.termsAmount = invoice.customer.termsAmount;
+
+                    updateExportDateIfNotSet(invoice.id, function(err){
                         if (err) return callback(err);
 
-                        callback();
-                    });
+                        exportInvoiceHtmlPdf(invoice, function(err) {
+                            if (err) return callback(err);
 
+                            callback();
+                        });
+                    });
                 });
             });
         });
@@ -257,10 +278,13 @@ function saveInvoiceItems(invoice, index, callback) {
 }
 
 function saveInvoice(invoice, callback) {
-    console.log("Saving Invoice");
+    console.log("Saving Invoice.");
     db.serialize(function() {
-        db.run('insert into invoice (id, issue_date, biller_id, customer_id, periode_from, periode_to) \
-            values (?, ?, ?, ?, ?, ?)', [invoice.id, invoice.date, invoice.billerId, invoice.customerId, invoice.periodeFrom, invoice.periodeTo],
+        db.run('insert into invoice (id, issue_date, biller_id, customer_id, periode_from, periode_to, due_date) \
+            values (?, ?, ?, ?, ?, ?, ?)', [
+                invoice.id, invoice.date, invoice.billerId, invoice.customerId, invoice.periodeFrom, invoice.periodeTo,
+                invoice.dueDate
+            ],
             function(err) {
                 if (err) {
                     callback(err);
@@ -269,6 +293,22 @@ function saveInvoice(invoice, callback) {
                     saveInvoiceItems(invoice, 0, callback);
                 }
             });
+    });
+}
+
+function calculateInvoiceDueDate(invoice, callback) {
+    console.log("Calculating due date.");
+
+    addCustomer(invoice, invoice.customerId, function(err) {
+        if (err) return callback(err);
+
+        var dueDate = new Date(invoice.date);
+        dueDate.setDate(dueDate.getDate() + invoice.customer.termsAmount);
+
+        invoice.dueDate = dateFormat(dueDate, "yyyy-mm-dd");
+        console.log("Due date: " + invoice.dueDate);
+
+        callback();
     });
 }
 
@@ -323,8 +363,10 @@ function newInvoice(invoice) {
             var newInvoiceId = '2016-0001';
             if (rows.length > 0) {
                 var tmp = rows[0].maxid;
-                var newNum = parseInt(tmp.substring(tmp.length - 4, tmp.length)) + 1;
-                newInvoiceId = tmp.substring(0, tmp.length - 4) + ('000' + newNum).substr(-4);
+                if (tmp != null) {
+                    var newNum = parseInt(tmp.substring(tmp.length - 4, tmp.length)) + 1;
+                    newInvoiceId = tmp.substring(0, tmp.length - 4) + ('000' + newNum).substr(-4);
+                }
             }
             inquirer.prompt([{
                 type: "input",
@@ -394,10 +436,12 @@ function newInvoice(invoice) {
                 }], function(answers) {
                     if (answers.item === "No more items.") {
 
-                        saveInvoice(invoice, function(err) {
-                            if (err) {
-                                exitWithError(err);
-                            } else {
+                        calculateInvoiceDueDate(invoice, function(err) {
+                            if (err) return exitWithError(err);
+
+                            saveInvoice(invoice, function(err) {
+                                if (err) return exitWithError(err);
+
                                 exportInvoice(invoice.id, function(err) {
                                     if (err) {
                                         exitWithError(err);
@@ -405,10 +449,8 @@ function newInvoice(invoice) {
                                         exitOk();
                                     }
                                 });
-                            }
+                            });
                         });
-
-
                     } else {
                         var itemId = answers.item.split(":")[0];
                         inquirer.prompt([{
