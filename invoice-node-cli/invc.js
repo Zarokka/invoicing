@@ -270,7 +270,7 @@ function saveInvoiceItems(invoice, index, callback) {
                     callback(err);
                 } else {
                     console.log("Invoice item %d inserted. Item net: %s%s",
-                        index, itemNetPrice.toFixed(2), invoice.curency);
+                        index, itemNetPrice.toFixed(2), invoice.currency);
                     saveInvoiceItems(invoice, index + 1, callback);
                 }
             });

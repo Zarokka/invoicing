@@ -31,6 +31,20 @@ Note: I could not get wkhtmltopdf to format the output correctly (had to remove 
 
 Contains an empty sqlite db and a node based CLI to add and generate invoices.
 
+#### What does it do?
+
+- asks if new invoice should be generated
+    - asks for biller (must exist in db)
+    - asks for customer (must exist in db)
+    - asks for invoice id (gives a suggestion)
+    - asks for invoice date (default today)
+    - asks for time frame (default last month)
+    - asks for items (must exist in db) and quantity
+    - exports the invoice to html and pdf
+
+- or if existing invoice should be exported
+    - exports the invoice to html and pdf
+
 #### Usage
 
 - Copy invoice.sqlite to a location of your choice.
