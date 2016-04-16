@@ -3,13 +3,13 @@
 Contains a html template for invoices (text in german) that can be filled with data using mustache
 and converted to pdf using node-html-pdf.
 
-It also contains an empty sqlite db and a CLI to add and export invoices from this db.
+It also contains sqlite db schema and a CLI to add and export invoices from this db.
 
 **Warning: This is not a sophisticated solution (more the quick and dirty type).**
 
-### Content
+## Content
 
-#### invoice_template_de_AT.html
+### invoice_template_de_AT.html
 
 The template contains CSS/HTML and mustaches.
 It is formatted for single page invoice for Austria (therefor in German).
@@ -29,7 +29,7 @@ Note: I could not get wkhtmltopdf to format the output correctly (had to remove 
 
 ### invoice-node-cli
 
-Contains an empty sqlite db and a node based CLI to add and generate invoices.
+Contains a node based CLI to add and generate invoices.
 
 #### What does it do?
 
@@ -47,7 +47,7 @@ Contains an empty sqlite db and a node based CLI to add and generate invoices.
 
 #### Usage
 
-- Copy invoice.sqlite to a location of your choice.
+- Create sqlite database with the create statements in sql/database_schema.sql
 - Use a SQLite management tool to add biller, customer, banking and item information
     - e.g. [SQLiteBrowser](http://sqlitebrowser.org/)
     - the id is always an alphanumeric value you have to enter your self
@@ -66,6 +66,12 @@ Contains an empty sqlite db and a node based CLI to add and generate invoices.
     - template: path to template
     - outputpath: path where html and pdf should be saved
     - locale: optional locale (only used to format numbers)
+
+### sql
+
+- database_shema.sql: the create statements for the database
+- charged_vs_paid.sql: list per customer the charged and paid amounts as well as the difference
+- unpaid_overdue.sql: list unpaid and overdue invoices
 
 ## License
 

@@ -61,7 +61,6 @@ CREATE TABLE "invoice" (
 	`total_gross`	REAL,
 	`export_date`	TEXT,
 	`due_date`	TEXT,
-	`payment_date`	TEXT,
 	PRIMARY KEY(id),
 	FOREIGN KEY(`biller_id`) REFERENCES biller ( id ),
 	FOREIGN KEY(`customer_id`) REFERENCES customer ( id )
@@ -78,4 +77,14 @@ CREATE TABLE "invoice_item" (
 	`quantity`	REAL,
 	`price_net`	REAL,
 	FOREIGN KEY(`invoice_id`) REFERENCES invoice ( id )
+);
+
+CREATE TABLE "payment" (
+	`biller_id`	TEXT,
+	`invoice_id`	TEXT,
+	`customer_id`	TEXT,
+	`info`	TEXT,
+	`payment_date`	TEXT,
+	`amount`	REAL,
+	`currency`	TEXT
 );
