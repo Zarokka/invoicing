@@ -12,7 +12,7 @@ var dateFormat = require('dateformat');
 var mustache = require('mustache');
 var fs = require('fs');
 var pdf = require('html-pdf');
-var open = require('open')
+var open = require('open');
 
 program.version('0.0.1').usage('<db> <template> <outputpath> [locale]');
 
@@ -83,7 +83,8 @@ function exportInvoiceHtmlPdf(invoice, callback) {
 
 function addBiller(invoice, billerId, callback) {
 
-    var sql = 'select * from biller bi \
+    var sql =
+        'select * from biller bi \
                 join banking ba on ba.biller_id = bi.id \
                 where bi.id = ?';
 
@@ -137,7 +138,7 @@ function addCustomer(invoice, customerId, callback) {
 }
 
 function numToLocale(num) {
-    if (locale != null) {
+    if (locale !== null) {
         return num.toLocaleString(locale, {
             maximumFractionDigits: 2,
             minimumFractionDigits: 2
@@ -164,7 +165,8 @@ function exportInvoice(invoiceId, callback) {
     console.log("Exporting invoice %s.", invoiceId);
 
     db.serialize(function() {
-        var sql = 'select * from invoice iv \
+        var sql =
+            'select * from invoice iv \
                     join invoice_item it on it.invoice_id = iv.id \
                     where iv.id = ? \
                     order by it.position';
@@ -210,7 +212,7 @@ function exportInvoice(invoiceId, callback) {
 
                     invoice.termsAmount = invoice.customer.termsAmount;
 
-                    updateExportDateIfNotSet(invoice.id, function(err){
+                    updateExportDateIfNotSet(invoice.id, function(err) {
                         if (err) return callback(err);
 
                         exportInvoiceHtmlPdf(invoice, function(err) {
@@ -255,12 +257,16 @@ function saveInvoiceItems(invoice, index, callback) {
         if (err) exitWithError(err);
 
         var itemNetPrice = row.unit_price * item.quantity;
+        itemNetPrice = Math.round(itemNetPrice * 100) / 100;
         invoice.totalNet += itemNetPrice;
-        invoice.totalTax += itemNetPrice * (row.tax_percentage / 100.0);
+        var itemTax = itemNetPrice * (row.tax_percentage / 100.0);
+        itemTax = Math.round(itemTax * 100) / 100;
+        invoice.totalTax += itemTax;
 
         invoice.currency = row.currency;
 
-        db.run('insert into invoice_item \
+        db.run(
+            'insert into invoice_item \
 				(invoice_id,  position, description, unit, unit_price, tax_percentage, quantity, price_net) \
 				values (?, ?, ?, ?, ?, ?, ?, ?)',
             invoice.id, index, row.description, row.unit, row.unit_price, row.tax_percentage, item.quantity,
@@ -280,9 +286,11 @@ function saveInvoiceItems(invoice, index, callback) {
 function saveInvoice(invoice, callback) {
     console.log("Saving Invoice.");
     db.serialize(function() {
-        db.run('insert into invoice (id, issue_date, biller_id, customer_id, periode_from, periode_to, due_date) \
+        db.run(
+            'insert into invoice (id, issue_date, biller_id, customer_id, periode_from, periode_to, due_date) \
             values (?, ?, ?, ?, ?, ?, ?)', [
-                invoice.id, invoice.date, invoice.billerId, invoice.customerId, invoice.periodeFrom, invoice.periodeTo,
+                invoice.id, invoice.date, invoice.billerId, invoice.customerId, invoice.periodeFrom,
+                invoice.periodeTo,
                 invoice.dueDate
             ],
             function(err) {
@@ -363,7 +371,7 @@ function newInvoice(invoice) {
             var newInvoiceId = '2016-0001';
             if (rows.length > 0) {
                 var tmp = rows[0].maxid;
-                if (tmp != null) {
+                if (tmp !== null) {
                     var newNum = parseInt(tmp.substring(tmp.length - 4, tmp.length)) + 1;
                     newInvoiceId = tmp.substring(0, tmp.length - 4) + ('000' + newNum).substr(-4);
                 }
@@ -424,7 +432,8 @@ function newInvoice(invoice) {
                 var choices = [];
                 var i;
                 for (i in rows) {
-                    choices.push(rows[i].id + ": " + rows[i].caption + ", " + rows[i].unit + ", " + rows[i].unit_price + " " + rows[i].currency);
+                    choices.push(rows[i].id + ": " + rows[i].caption + ", " + rows[i].unit + ", " + rows[i].unit_price +
+                        " " + rows[i].currency);
                 }
                 choices.push("No more items.");
 
@@ -464,7 +473,7 @@ function newInvoice(invoice) {
                             invoice.items.push({
                                 id: itemId,
                                 quantity: parseFloat(answers.quantity.replace(",", "."))
-                            })
+                            });
                             newInvoice(invoice);
                         });
                     }
