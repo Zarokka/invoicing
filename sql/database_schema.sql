@@ -24,13 +24,14 @@ CREATE TABLE "banking" (
 CREATE TABLE "customer" (
 	`id`	TEXT NOT NULL UNIQUE,
 	`name`	TEXT,
-	`street`	NUMERIC,
+	`street`	TEXT,
 	`postal`	TEXT,
 	`city`	TEXT,
 	`nation`	TEXT,
 	`tax_id`	TEXT,
 	`terms_amount`	INTEGER,
 	`terms_unit`	TEXT,
+	`valid_to`	TEXT,
 	PRIMARY KEY(id)
 );
 
@@ -43,6 +44,7 @@ CREATE TABLE "item" (
 	`unit_price`	REAL,
 	`currency`	TEXT,
 	`tax_percentage`	REAL,
+	`valid_to`	TEXT,
 	PRIMARY KEY(id),
 	FOREIGN KEY(`customer_id`) REFERENCES customer(id)
 );

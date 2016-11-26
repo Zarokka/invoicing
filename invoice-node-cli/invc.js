@@ -14,7 +14,7 @@ var fs = require('fs');
 var pdf = require('html-pdf');
 var open = require('open');
 
-program.version('0.0.1').usage('<db> <template> <outputpath> [locale]');
+program.version('0.0.2').usage('<db> <template> <outputpath> [locale]');
 
 program.parse(process.argv);
 
@@ -342,10 +342,12 @@ function newInvoice(invoice) {
                     billerId: answers.biller.split(":")[0]
                 });
             });
-
         });
     } else if (typeof invoice.customerId === 'undefined') {
-        db.all("SELECT id, name FROM customer", function(err, rows) {
+        db.all("SELECT id, name, valid_to \
+                    FROM customer \
+                    where (valid_to is null or date('now') < date(valid_to))"
+                , function(err, rows) {
             if (err) exitWithError(err);
 
             var choices = [];
@@ -363,7 +365,6 @@ function newInvoice(invoice) {
                 invoice.customerId = answers.customer.split(":")[0];
                 newInvoice(invoice);
             });
-
         });
     } else if (typeof invoice.id === 'undefined') {
         db.all("select max(id) as maxid from invoice", function(err, rows) {
@@ -426,7 +427,9 @@ function newInvoice(invoice) {
             newInvoice(invoice);
         });
     } else {
-        db.all('select * from  item where customer_id = "' + invoice.customerId + '" or customer_id is null',
+        db.all('select * from item \
+                where (customer_id = "' + invoice.customerId + '" or customer_id is null) \
+                and (valid_to is null or date(\'now\') < date(valid_to))',
             function(err, rows) {
                 if (err) exitWithError(err);
                 var choices = [];
@@ -481,7 +484,6 @@ function newInvoice(invoice) {
 
             });
     }
-
 }
 
 function exportExistingInvoice() {
